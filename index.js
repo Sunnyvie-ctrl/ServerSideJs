@@ -1,19 +1,23 @@
-import express from "express" // new js
+const express = require("express");
+const studentRoutes = require("./routes/studentRoutes");
 
-const express = require("express") // old js
+const app = express();
+const port = 3000;
 
+// Middleware
+app.use(express.json());
 
-const app = express()
-const port = 3000
+// Routes
+app.use("/students", studentRoutes);
 
+// Root
 app.get("/", (req, res) => {
-	res.json({ msg: "Hello World!" })
-})
+  res.json({ msg: "API is running" });
+});
 
 app.listen(port, () => {
-	console.log(`Example app listening on port ${port}`)
-})
-
+  console.log(`Server running on http://localhost:${port}`);
+});
 // NODEMON
 
 // send data to the exposed endpoints
