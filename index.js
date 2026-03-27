@@ -1,8 +1,10 @@
 const express = require("express");
+const cors = require("cors");
 const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
 const port = 3000;
+app.use(cors());
 
 // Middleware
 app.use(express.json());
