@@ -1,71 +1,113 @@
-# Exercise 01 — File System & JSON
+# Student Management App
 
-## Goal
+A simple CRUD application to manage student data. Built with Node.js, Express, and a frontend using HTML, CSS, and JavaScript. The project demonstrates proper separation of concerns with routes, controllers, and services, and includes CORS handling for frontend-backend communication.
 
-Read a JSON file, transform its data, and write the result to a Markdown file — all using Node.js built-in modules, no `npm install` needed.
+---
 
-## What you will build
+## Features
 
-A script that reads `students.json` and generates a `student_report.md` file.
+- List all students
+- Fetch student data via REST API
+- Fully modular backend:
+  - Routes define endpoints
+  - Controllers handle requests and responses
+  - Services contain business logic and data access
+- Frontend fetches data and displays student cards
+- CORS enabled for cross-origin requests
+- JSON-based data storage (students.json)
 
-## Run it
+---
+
+## Folder Structure
+    project/
+    ├── index.js # Entry point: sets up server & middleware
+    ├── package.json
+    ├── students.json # Student data
+    ├── routes/
+    │ └── students.js # API route definitions
+    ├── controllers/
+    │ └── studentsController.js # Request handling
+    └── services/
+    └── studentsService.js # Business logic / data access
+    ├── frontend/
+    ├── index.html
+    ├── script.js
+    └── style.css
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14+)  
+- npm (Node Package Manager)  
+
+---
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-node index.js
+git clone <your-repo-url>
+cd project
 ```
 
-If it works, you should see a success message in the terminal and a new `student_report.md` file appear next to `index.js`.
+Install dependencies:
+```
+npm install
+```
+Start the server:
+```
+npm start
+```
+Server runs on: http://localhost:3000
 
-## Modules you will need
+Frontend
 
-| Module | What it does                            |
-| ------ | --------------------------------------- |
-| `fs`   | Read and write files on your filesystem |
-| `path` | Build file paths that work on any OS    |
+Open frontend/index.html in a browser. The frontend fetches student data from:
 
-Both are built into Node.js — just `require` them, no install needed.
+    http://localhost:3000/students
 
-## Key functions
+Make sure the backend server is running before opening the frontend.
 
-- `fs.readFileSync(filePath, 'utf-8')` — reads a file and returns its contents as a string
-- `fs.writeFileSync(filePath, content, 'utf-8')` — writes a string to a file (creates it if it doesn't exist)
-- `JSON.parse(string)` — converts a JSON string into a JavaScript object
-- `path.join(__dirname, 'filename')` — builds a safe absolute path relative to the current script
+API Endpoints
+| Method | Endpoint      | Description                |
+| ------ | ------------- | -------------------------- |
+| GET    | /students     | Get all students           |
+| GET    | /students/:id | Get a single student by ID |
+| POST   | /students     | Create a new student       |
+| PUT    | /students/:id | Update a student by ID     |
+| DELETE | /students/:id | Delete a student by ID     |
 
-## Steps
 
-1. Require the `fs` and `path` modules
-2. Read `students.json` using `fs.readFileSync`
-3. Parse the JSON string into a JavaScript array using `JSON.parse`
-4. Build a Markdown string by looping over the students array
-5. Write the result to `student_report.md` using `fs.writeFileSync`
-
-## Expected output
-
-The generated `student_report.md` should look like this:
-
-```markdown
-# Student Report
-
-Generated on: 20/03/2026
-
-## Summary
-
-Total Students: 3
-
-## Student Details
-
-### Alice Martin
-
-- **Email:** alice.martin@epita.fr
-- **Major:** Computer Science
-- **GPA:** 3.8
-- **ID:** 1
-  ...
+Example JSON Response
+```JSON
+[
+  {
+    "name": "Alice Smith",
+    "major": "Computer Science",
+    "email": "alice@example.com",
+    "gpa": 3.9
+  },
+  {
+    "name": "Bob Jones",
+    "major": "Computer Science",
+    "email": "bob@example.com",
+    "gpa": 3.7
+  }
+]
 ```
 
-## Hints
+### Notes
+CORS is enabled using the cors package, allowing the frontend to fetch data from a different origin.
+Backend follows MVC-style separation: Routes → Controllers → Services.
+Frontend dynamically renders student cards with initials, name, major, email, and GPA.
 
-- `__dirname` is a Node.js variable that always points to the folder where your script lives — useful for building reliable file paths
-- `Array.forEach()` lets you loop over each student and append their info to your Markdown string
-- Template literals (backticks) make it easy to embed variables inside strings: `` `Hello ${name}` ``
+
+### Troubleshooting
+ERR_CONNECTION_REFUSED: Ensure the backend is running on http://localhost:3000
+.
+Cannot read properties of undefined: Check that the frontend is fetching /students and that the server returns an array.
+CORS errors: Confirm that app.use(cors()) is present in index.js.
