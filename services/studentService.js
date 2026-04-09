@@ -1,29 +1,14 @@
-const students = require("../students.json");
+const Student = require("../models/Student");
 
-exports.getAll = () => students;
+exports.getAll = () => Student.find();
 
-exports.getById = (id) => {
-  return students.find(s => s.id === id);
-};
+exports.getById = (id) => Student.findById(id);
 
-exports.create = (student) => {
-  students.push(student);
-  return student;
-};
+exports.create = (data) => Student.create(data);
 
-exports.update = (id, newData) => {
-  const index = students.findIndex(s => s.id === id);
+exports.update = (id, data) =>
+  Student.findByIdAndUpdate(id, data, { new: true });
 
-  if (index === -1) return null;
+exports.remove = (id) => Student.findByIdAndDelete(id);
 
-  students[index] = newData;
-  return students[index];
-};
-
-exports.remove = (id) => {
-  const index = students.findIndex(s => s.id === id);
-
-  if (index === -1) return null;
-
-  return students.splice(index, 1);
-};
+exports.findByEmail = (email) => Student.findOne({ email });
