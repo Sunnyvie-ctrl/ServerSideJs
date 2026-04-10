@@ -1,44 +1,76 @@
-const studentService = require("../services/studentService");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const service = require("../services/studentService");
 
-exports.getAllStudents = (req, res) => {
-    const students = studentService.getAll();
-    res.json(students);
+// GET ALL
+exports.getAllStudents = async (req, res) => {
+  const students = await service.getAll();
+  res.json(students);
 };
 
-exports.getStudentById = (req, res) => {
-    const id = parseInt(req.params.id);
-    const student = studentService.getById(id);
+// GET ONE
+exports.getStudentById = async (req, res) => {
+  const student = await service.getById(req.params.id);
 
-    if (!student) {
-        return res.status(404).json({ error: "Student not found" });
-    }
+  if (!student) {
+    return res.status(404).json({ error: "Student not found" });
+  }
 
-    res.json(student);
+  res.json(student);
 };
 
-exports.createStudent = (req, res) => {
-    const newStudent = studentService.create(req.body);
-    res.status(201).json(newStudent);
+// REGISTER (CREATE + HASH PASSWORD)
+exports.register = async (req, res) => {
+  const { password, ...rest } = req.body;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const student = await service.create({
+    ...rest,
+    password: hashedPassword,
+    image: req.file ? req.file.filename : null
+  });
+
+  res.status(201).json(student);
 };
 
-exports.updateStudent = (req, res) => {
-    const id = parseInt(req.params.id);
-    const updated = studentService.update(id, req.body);
+// LOGIN
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
 
-    if (!updated) {
-        return res.status(404).json({ error: "Student not found" });
-    }
+  const student = await service.findByEmail(email);
+  if (!student) return res.status(404).json({ error: "User not found" });
 
-    res.json(updated);
+  const match = await bcrypt.compare(password, student.password);
+  if (!match) return res.status(401).json({ error: "Invalid password" });
+
+  const token = jwt.sign(
+    { userId: student._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  res.json({ token });
 };
 
-exports.deleteStudent = (req, res) => {
-  const id = parseInt(req.params.id);
-  const deleted = studentService.remove(id);
+// UPDATE
+exports.updateStudent = async (req, res) => {
+  const updated = await service.update(req.params.id, req.body);
+
+  if (!updated) {
+    return res.status(404).json({ error: "Student not found" });
+  }
+
+  res.json(updated);
+};
+
+// DELETE (GDPR)
+exports.deleteStudent = async (req, res) => {
+  const deleted = await service.remove(req.params.id);
 
   if (!deleted) {
     return res.status(404).json({ error: "Student not found" });
   }
 
-  res.json(deleted);
+  res.json({ msg: "Deleted (GDPR compliant)" });
 };
