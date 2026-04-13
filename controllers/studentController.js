@@ -1,76 +1,115 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 const service = require("../services/studentService");
+const { toStudentDTO } = require("../dto/studentDTO");
 
 // GET ALL
 exports.getAllStudents = async (req, res) => {
-  const students = await service.getAll();
-  res.json(students);
+  try {
+    const students = await service.getAll();
+
+    const studentsDTO = students.map(toStudentDTO);
+
+    res.json(studentsDTO);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // GET ONE
 exports.getStudentById = async (req, res) => {
-  const student = await service.getById(req.params.id);
+  try {
+    const student = await service.getById(req.params.id);
 
-  if (!student) {
-    return res.status(404).json({ error: "Student not found" });
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.json(toStudentDTO(student));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  res.json(student);
 };
 
-// REGISTER (CREATE + HASH PASSWORD)
+// REGISTER (CREATE)
 exports.register = async (req, res) => {
-  const { password, ...rest } = req.body;
+  try {
+    const { password, ...rest } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const student = await service.create({
-    ...rest,
-    password: hashedPassword,
-    image: req.file ? req.file.filename : null
-  });
+    const student = await service.create({
+      ...rest,
+      password: hashedPassword,
+      image: req.file ? req.file.filename : null
+    });
 
-  res.status(201).json(student);
+    // Optional: return DTO instead of full object
+    res.status(201).json(toStudentDTO(student));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // LOGIN
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const student = await service.findByEmail(email);
-  if (!student) return res.status(404).json({ error: "User not found" });
+    const student = await service.findByEmail(email);
+    if (!student) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-  const match = await bcrypt.compare(password, student.password);
-  if (!match) return res.status(401).json({ error: "Invalid password" });
+    const match = await bcrypt.compare(password, student.password);
+    if (!match) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
 
-  const token = jwt.sign(
-    { userId: student._id },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+    const token = jwt.sign(
+      { userId: student._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-  res.json({ token });
+    // LOGIN DTO (safe)
+    res.json({
+      token,
+      user: toStudentDTO(student)
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // UPDATE
 exports.updateStudent = async (req, res) => {
-  const updated = await service.update(req.params.id, req.body);
+  try {
+    const updated = await service.update(req.params.id, req.body);
 
-  if (!updated) {
-    return res.status(404).json({ error: "Student not found" });
+    if (!updated) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.json(toStudentDTO(updated));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  res.json(updated);
 };
 
 // DELETE (GDPR)
 exports.deleteStudent = async (req, res) => {
-  const deleted = await service.remove(req.params.id);
+  try {
+    const deleted = await service.remove(req.params.id);
 
-  if (!deleted) {
-    return res.status(404).json({ error: "Student not found" });
+    if (!deleted) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    res.json({ msg: "Deleted (GDPR compliant)" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  res.json({ msg: "Deleted (GDPR compliant)" });
 };
