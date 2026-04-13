@@ -1,21 +1,18 @@
 const express = require("express");
 const router = express.Router();
 
-const studentController = require("../controllers/studentController");
+const controller = require("../controllers/studentController");
+const auth = require("../middleware/authMiddleware");
+const upload = require("../middleware/multer-config");
 
-// GET all
-router.get("/", studentController.getAllStudents);
+// PUBLIC
+router.post("/register", upload, controller.register);
+router.post("/login", controller.login);
 
-// GET by ID
-router.get("/:id", studentController.getStudentById);
-
-// POST
-router.post("/", studentController.createStudent);
-
-// PUT
-router.put("/:id", studentController.updateStudent);
-
-// DELETE
-router.delete("/:id", studentController.deleteStudent);
+// PROTECTED (CRUD)
+router.get("/", auth, controller.getAllStudents);
+router.get("/:id", auth, controller.getStudentById);
+router.put("/:id", auth, controller.updateStudent);
+router.delete("/:id", auth, controller.deleteStudent);
 
 module.exports = router;

@@ -1,24 +1,36 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
+
+const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
+const logger = require("./middleware/logger");
 
 const app = express();
-const port = 3000;
+
+// DB
+connectDB();
+
+// MIDDLEWARE
 app.use(cors());
-
-// Middleware
 app.use(express.json());
+app.use(logger);
 
-// Routes
+// STATIC FILES
+app.use(express.static("public"));
+
+// ROUTES
 app.use("/students", studentRoutes);
 
-// Root
 app.get("/", (req, res) => {
-  res.json({ msg: "API is running" });
+  res.json({ msg: "API running" });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 // NODEMON
 
