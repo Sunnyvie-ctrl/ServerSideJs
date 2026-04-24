@@ -11,7 +11,7 @@ exports.getAllStudents = async (req, res) => {
 
     const studentsDTO = students.map(toStudentDTO);
 
-    res.json(studentsDTO);
+    res.status(200).json(studentsDTO);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -35,7 +35,9 @@ exports.getStudentById = async (req, res) => {
 // REGISTER (CREATE)
 exports.register = async (req, res) => {
   try {
-    const { password, ...rest } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: "Password is required" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -73,8 +75,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    // LOGIN DTO (safe)
-    res.json({
+    res.status(200).json({
       token,
       user: toStudentDTO(student)
     });
@@ -84,10 +85,17 @@ exports.login = async (req, res) => {
   }
 };
 
-// UPDATE
+//UPDATE
 exports.updateStudent = async (req, res) => {
   try {
-    const updated = await service.update(req.params.id, req.body);
+    const data = { ...req.body };
+
+    // If password is being updated → hash it
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+
+    const updated = await service.update(req.params.id, data);
 
     if (!updated) {
       return res.status(404).json({ error: "Student not found" });
@@ -108,7 +116,7 @@ exports.deleteStudent = async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    res.json({ msg: "Deleted (GDPR compliant)" });
+    res.status(200).json({ message: "Student deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
