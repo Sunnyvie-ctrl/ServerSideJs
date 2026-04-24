@@ -5,6 +5,7 @@ const cors = require("cors");
 
 const connectDB = require("./config/db");
 const studentRoutes = require("./routes/studentRoutes");
+const courseRoutes = require("./routes/courseRoutes");
 const logger = require("./middleware/logger");
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.static("public"));
 
 // ROUTES
 app.use("/students", studentRoutes);
+app.use("/api/courses", courseRoutes);
 
 app.get("/", (req, res) => {
   res.json({ msg: "API running" });
