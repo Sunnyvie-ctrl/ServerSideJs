@@ -35,6 +35,11 @@ exports.getStudentById = async (req, res) => {
 // REGISTER (CREATE)
 exports.register = async (req, res) => {
   try {
+    console.log("BODY:", req.body); // DEBUG
+
+    const { password, ...rest } = req.body;
+
+    // HARD CHECK (important)
     if (!password) {
       return res.status(400).json({ error: "Password is required" });
     }
@@ -47,9 +52,10 @@ exports.register = async (req, res) => {
       image: req.file ? req.file.filename : null
     });
 
-    // Optional: return DTO instead of full object
     res.status(201).json(toStudentDTO(student));
+
   } catch (err) {
+    console.error(err); // IMPORTANT for debugging
     res.status(500).json({ error: err.message });
   }
 };
